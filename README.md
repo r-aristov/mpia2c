@@ -53,10 +53,11 @@ optional arguments:
                         max steps in replay (default: 500)
   --iterations ITERATIONS
                         iterations to train (default: 1e8)
-```                       
-To run **snake** example (test): 
+```   
+Note: trainig  scripts should be started via MPI (follow https://mpi4py.scipy.org/docs/usrman/tutorial.html and MPI manuals to learn more about starting parameters of mpiexec) 
+
+To run **snake** example (test):
 ```
 python snake_test trained\snake.nn
 ```
-Note: trainig  scripts should be started via MPI (follow https://mpi4py.scipy.org/docs/usrman/tutorial.html and MPI manuals to learn more 
-about starting parameters of mpiexec 
+[![snake trained](https://github.com/r-aristov/mpia2c/blob/master/snake.gif)]
