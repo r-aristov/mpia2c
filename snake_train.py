@@ -360,7 +360,7 @@ def main():
                         help='discount factor (default: 3e-3)')
 
     parser.add_argument('--log-interval', type=int, default=20,
-                        help='interval between training status logs [in full replays] (default: 20)')
+                        help='interval between training status logs [in replays] (default: 20)')
 
     parser.add_argument('--save-interval', type=int, default=10,
                         help='interval between saving model weights [in full episodes] (default: 10)')

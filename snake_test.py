@@ -114,15 +114,11 @@ def init_all():
     b.eval()
     b.reset()
 
-
     for p in b.parameters():
         p.detach_()
 
     sim, controller, snake = sim_init(b)
     return sim, snake, controller
-
-
-
 
 
 def render_activations(act0, act1):
