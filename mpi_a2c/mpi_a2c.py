@@ -211,7 +211,7 @@ class MPIA2C:
                 steps += 1
                 if (steps % self.steps_in_replay == 0 and steps != 0) or env.done:
                     replay = self.agent.end_replay(env.done)
-                    replay.rewards = MPIA2C.discount_rewards(replay.rewards, self.gamma)
+                    replay.rewards = MPIA2C.discount_rewards(replay.rewards, self.gamma, env.done, self.agent.last_value)
                     replay.states = torch.stack(replay.states)
 
                     replay.hidden0 = replay.hidden0.squeeze()
@@ -233,9 +233,9 @@ class MPIA2C:
             self.slave()
 
     @staticmethod
-    def discount_rewards(rewards, gamma):
+    def discount_rewards(rewards, gamma, is_terminal, last_value):
         values = []
-        v = 0
+        v = last_value if not is_terminal else 0.0
         for r in rewards[::-1]:
             v = r + gamma * v
             values.insert(0, v)

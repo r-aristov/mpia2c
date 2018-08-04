@@ -49,7 +49,6 @@ class A2CAgent:
         replay.iter = self.__iter
         replay.total_reward = self.total_reward
         if not is_terminal:
-            replay.rewards[-1] = self.last_value
             self.reset(new_episode=False)
         if replay.hidden0 is None:
             replay.hidden0 = torch.zeros(1)
