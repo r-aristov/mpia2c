@@ -17,17 +17,20 @@ class Replay:
         self.iter = 0
         self.total_reward = 0.0
 
-
 class MPIA2C:
     @staticmethod
-    def init_mpi_rng():
+    def init_mpi_rng(seed_base=None):
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
-        seed_base = int(time.time())
+        if seed_base is None:
+            seed_base = int(time.time())
+        torch.manual_seed(seed_base)
+
         seed = int(torch.randint(2 ** 32, (rank + 1,))[rank].item())
         seed = seed_base ^ seed
         np.random.seed(seed)
         torch.manual_seed(seed)
+        return seed
 
     def __init__(self, comm, rank, optimizer, on_batch_done, on_episodes_done):
         self.use_gpu = False

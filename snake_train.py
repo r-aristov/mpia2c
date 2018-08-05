@@ -152,7 +152,7 @@ class SnakeEnvController:
 
             if snake.food[k] < 0:
                 self.died = self.die_on_starvation[k]
-                self.current_r += self.starvation_reward
+                self.current_r += self.starvation_reward[k]
 
         self.current_r += self.step_reward
 
@@ -325,7 +325,7 @@ def sim_init(brain):
     # rewards & death conditions
     controller.collected_reward = {OBJ_FOOD0: 0.0, OBJ_FOOD1: 0.0}
     controller.step_reward = 0.00
-    controller.starvation_reward = -2.0
+    controller.starvation_reward = {OBJ_FOOD0: -2.0, OBJ_FOOD1: -2.0}
     controller.wall_collision_reward = -2.0
     controller.self_collision_reward = -2.0
     controller.die_on_starvation = {OBJ_FOOD0: True, OBJ_FOOD1: True}

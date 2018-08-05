@@ -13,12 +13,14 @@ import time
 
 
 class GymEnvironment:
-    def __init__(self, agent, rank):
+    def __init__(self, agent, rank, seed=None):
         self.done = False
         
         self.agent = agent
         self.rank = rank
         self.env = gym.make('CartPole-v0')
+        if seed is not None:
+            self.env.seed(seed)
         self.last_state = self.env.reset()
 
     def reset(self):
@@ -107,8 +109,6 @@ def main():
     rank = comm.Get_rank()
     size = comm.Get_size()
 
-    MPIA2C.init_mpi_rng()
-
     if size == 1:
         print("Can not run on single node, 2 nodes required at least!")
         sys.exit(-1)
@@ -141,7 +141,13 @@ def main():
 
     parser.add_argument('--iterations', type=int, default=1e8,
                         help='iterations to train (default: 1e8)')
+
+    parser.add_argument('--seed', type=int,
+                        help='random seed')
+
     args = parser.parse_args()
+
+    seed = MPIA2C.init_mpi_rng(args.seed) if args.seed is not None else None
 
     if rank == 0:
         print("Starting RL training on %d nodes..." % size)
@@ -154,7 +160,8 @@ def main():
         if rank == 0:
             print("Weights loaded from %s" % args.src)
 
-    gym_env = GymEnvironment(agent, rank)
+    gym_env = GymEnvironment(agent, rank, seed)
+
     ptracker = ProgressTracker(agent, gym_env.env.spec.reward_threshold, args.dst)
     ptracker.log_interval = args.log_interval
     ptracker.save_interval = args.save_interval
