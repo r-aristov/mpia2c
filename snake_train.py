@@ -94,12 +94,8 @@ class ProgressTracker:
         self.dst = ''
 
     def on_batch_done(self, loss, batch):
-        if batch % self.log_interval == 0:
-            dt = time.time() - self.lst_tick
-            self.lst_tick = time.time()
-            self.total_time += dt
-            log_str = "{:<15.2f}{:<15}{:<15.2f}{:<15.2f}".format(self.total_time, self.episode, self.running_iter, self.running_reward)
-            print(log_str)
+        pass
+
 
     def on_episodes_done(self, episode, batch_rewards, batch_iters):
         total_reward_avg = torch.tensor(batch_rewards).float().mean().item()
@@ -107,6 +103,14 @@ class ProgressTracker:
         self.running_reward = self.running_reward * 0.9 + total_reward_avg * 0.1
         self.running_iter = self.running_iter * 0.9 + iter_avg * 0.1
         self.episode = episode
+
+        if episode % self.log_interval == 0 and episode != 0:
+            dt = time.time() - self.lst_tick
+            self.lst_tick = time.time()
+            self.total_time += dt
+            log_str = "{:<15.2f}{:<15}{:<15.2f}{:<15.2f}".format(self.total_time, self.episode, self.running_iter, self.running_reward)
+            print(log_str)
+
         if episode % self.save_interval == 0:
             self.agent.save(self.dst)
 
@@ -339,7 +343,7 @@ def main():
     rank = comm.Get_rank()
     size = comm.Get_size()
 
-    MPIA2C.init_mpi_rng()
+    MPIA2C.init_mpi_rng(0xAABBFEFE)
 
     if size == 1:
         print("Can not run on single node, 2 nodes required at least!")
@@ -359,14 +363,17 @@ def main():
     parser.add_argument('--lr', type=float, default=3e-3,
                         help='discount factor (default: 3e-3)')
 
-    parser.add_argument('--log-interval', type=int, default=20,
-                        help='interval between training status logs [in replays] (default: 20)')
+    parser.add_argument('--log-interval', type=int, default=10,
+                        help='interval between training status logs [in full episodes] (default: 10)')
 
     parser.add_argument('--save-interval', type=int, default=10,
                         help='interval between saving model weights [in full episodes] (default: 10)')
 
-    parser.add_argument('--replays-in-batch', type=int, default=5,
-                        help='number of replays in batch (per estimator) (default: 5)')
+    parser.add_argument('--ppo-iters', type=int, default=4,
+                        help='number ppo iterations. If value is 1, vanilla a2c is used (default: 4)')
+
+    parser.add_argument('--ppo-clip', type=float, default=0.2,
+                        help='ppo loss clipping value (default: 0.2)')
 
     parser.add_argument('--steps-in-replay', type=int, default=500,
                         help='max steps in replay (default: 500)')
@@ -375,10 +382,16 @@ def main():
                         help='iterations to train (default: 1e8)')
     args = parser.parse_args()
 
+    args.ppo_iters = args.ppo_iters if args.ppo_iters > 0 else 1
+
     if rank == 0:
         print("Starting RL training on %d nodes..." % size)
         print("Model weights will be saved to %s every %d full episodes" % (args.dst, args.save_interval))
         print("Gamma = %1.3f, LR = %1.4f" % (args.gamma, args.lr))
+        if args.ppo_iters == 1:
+            print("Using vanilla A2C loss (ppo_iters = 1)")
+        else:
+            print("Using PPO loss (ppo iters = %d, ppo clip = %1.2f)" % (args.ppo_iters, args.ppo_clip))
 
     agent = Brain()
     if args.src != "":
@@ -396,7 +409,8 @@ def main():
     a2c.max_train_iters = args.iterations
     a2c.steps_in_replay = args.steps_in_replay
     a2c.gamma = args.gamma
-    a2c.replays_in_batch = args.replays_in_batch
+    a2c.ppo_iters = args.ppo_iters
+    a2c.ppo_clip = args.ppo_clip
 
     a2c.agent = agent
     a2c.env = SnakeEnvironment(a2c.agent, rank)

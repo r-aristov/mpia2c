@@ -15,7 +15,7 @@ Examples:
 -------
 To run **cartpole** example:
 ```
-mpiexec -n 11 python cartpole_train.py trained\cartpole.nn --gamma=0.99 --replays-in-batch=1
+mpiexec -n 11 python cartpole_train.py trained\cartpole.nn --gamma=0.99
 ```
 
 To run **snake** example (training):
@@ -24,13 +24,13 @@ mpiexec -n 11 python snake_train.py trained\saved_network.nn --gamma=0.97
 ```
 
 ```
-usage: snake_train.py [-h] [--src SRC] [--gamma GAMMA] [--lr LR]
-                      [--log-interval LOG_INTERVAL]
-                      [--save-interval SAVE_INTERVAL]
-                      [--replays-in-batch REPLAYS_IN_BATCH]
-                      [--steps-in-replay STEPS_IN_REPLAY]
-                      [--iterations ITERATIONS]
-                      dst
+usage: cartpole_train.py [-h] [--src SRC] [--gamma GAMMA] [--lr LR]
+                         [--log-interval LOG_INTERVAL]
+                         [--save-interval SAVE_INTERVAL]
+                         [--ppo-iters PPO_ITERS] [--ppo-clip PPO_CLIP]
+                         [--steps-in-replay STEPS_IN_REPLAY]
+                         [--iterations ITERATIONS] [--seed SEED]
+                         dst
                       
 positional arguments:
   dst                   trained model save path
@@ -42,17 +42,19 @@ optional arguments:
   --lr LR               discount factor (default: 3e-3)
   --log-interval LOG_INTERVAL
                         interval between training status logs [in full
-                        replays] (default: 20)
+                        episodes] (default: 10)
   --save-interval SAVE_INTERVAL
                         interval between saving model weights [in full
                         episodes] (default: 10)
-  --replays-in-batch REPLAYS_IN_BATCH
-                        number of replays in batch (per estimator) (default:
-                        5)
+  --ppo-iters PPO_ITERS
+                        number ppo iterations. If value is 1, vanilla a2c is
+                        used (default: 4)
+  --ppo-clip PPO_CLIP   ppo loss clipping value (default: 0.2)
   --steps-in-replay STEPS_IN_REPLAY
                         max steps in replay (default: 500)
   --iterations ITERATIONS
                         iterations to train (default: 1e8)
+  --seed SEED           random seed
 ```   
 Note: trainig  scripts should be started via MPI (follow https://mpi4py.scipy.org/docs/usrman/tutorial.html and MPI manuals to learn more about starting parameters of mpiexec) 
 

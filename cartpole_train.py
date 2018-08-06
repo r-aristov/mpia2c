@@ -133,8 +133,11 @@ def main():
     parser.add_argument('--save-interval', type=int, default=10,
                         help='interval between saving model weights [in full episodes] (default: 10)')
 
-    parser.add_argument('--replays-in-batch', type=int, default=1,
-                        help='number of replays in batch (per estimator) (default: 1)')
+    parser.add_argument('--ppo-iters', type=int, default=4,
+                        help='number ppo iterations. If value is 1, vanilla a2c is used (default: 4)')
+
+    parser.add_argument('--ppo-clip', type=float, default=0.2,
+                        help='ppo loss clipping value (default: 0.2)')
 
     parser.add_argument('--steps-in-replay', type=int, default=500,
                         help='max steps in replay (default: 500)')
@@ -146,6 +149,7 @@ def main():
                         help='random seed')
 
     args = parser.parse_args()
+    args.ppo_iters = args.ppo_iters if args.ppo_iters > 0 else 1
 
     seed = MPIA2C.init_mpi_rng(args.seed) if args.seed is not None else None
 
@@ -153,6 +157,10 @@ def main():
         print("Starting RL training on %d nodes..." % size)
         print("Model weights will be saved to %s every %d full episodes" % (args.dst, args.save_interval))
         print("Gamma = %1.3f, LR = %1.4f" % (args.gamma, args.lr))
+        if args.ppo_iters == 1:
+            print("Using vanilla A2C loss (ppo_iters = 1)")
+        else:
+            print("Using PPO loss (ppo iters = %d, ppo clip = %1.2f)" % (args.ppo_iters, args.ppo_clip))
 
     agent = Brain()
     if args.src != "":
@@ -171,7 +179,9 @@ def main():
     a2c.max_train_iters = args.iterations
     a2c.steps_in_replay = args.steps_in_replay
     a2c.gamma = args.gamma
-    a2c.replays_in_batch = args.replays_in_batch
+
+    a2c.ppo_iters = args.ppo_iters
+    a2c.ppo_clip = args.ppo_clip
 
     a2c.agent = agent
     a2c.env = gym_env
