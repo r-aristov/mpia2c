@@ -187,7 +187,7 @@ class MPIA2C:
 
                 logprobs = torch.stack(logprob_list).t() if batch_size > 1 else torch.stack(logprob_list).squeeze_()
 
-                pred_vals = torch.stack(pred_values_list).t().squeeze() if batch_size > 1 else torch.stack(
+                pred_vals = torch.stack(pred_values_list).squeeze().t() if batch_size > 1 else torch.stack(
                     pred_values_list).squeeze_()
 
                 true_values.squeeze_()
